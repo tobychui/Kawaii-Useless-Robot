@@ -1,0 +1,349 @@
+/*
+    👾 Cute Useless Robot CSS theme (´・ω・`)
+
+    Note: This css theme is designed to be completely
+    off-grid, do not include url or external resources
+*/
+
+@font-face {
+    font-family: 'mulishB';
+    src: url('src/Mulish-Bold.ttf')  format('truetype'), /* Safari, Android, iOS */
+}
+
+@font-face {
+    font-family: 'mulishR';
+    src: url('src/Mulish-Regular.ttf')  format('truetype'), /* Safari, Android, iOS */
+}
+
+:root{
+    --theme-base: #000000;
+    --theme-dark: #141414;
+    --theme-divider: #252525;
+    --theme-dark-alt: #282828;
+    --theme-active: #230046;
+    --theme-primary: #E8E9EB;
+    --theme-secondary: #320064;
+    --theme-text-color: white;
+}
+
+body{
+    margin: 0 !important;
+    font-family: 'mulishR' !important;
+    color: var(--theme-text-color);
+    background-color: var(--theme-dark);
+}
+
+/* Global CSS Rules */
+.button{
+    border: 1px solid transparent;
+    background-color: transparent;
+    transition: background-color ease-in-out 0.1s, opacity ease-in-out 0.1s;
+    cursor: pointer;
+    padding: 0.4em;
+    padding-left: 0.6em;
+    padding-right: 0.6em;
+}
+
+.button:hover{
+    background-color: rgba(255,255,255,0.1);
+    opacity: 0.8;
+}
+
+
+.inverse.button{
+    border: 1px solid var(--theme-dark);
+    background-color: var(--theme-active);
+    color: white;
+}
+
+.inverse.button:hover{
+    background-color: var(--theme-secondary);
+}
+
+
+.button .btnicon{
+    width: 100%;
+    height: 100%;
+}
+
+.container{
+    padding: 0.6em;
+    padding-left: 1.2em;
+    padding-right: 1.2em;
+    width: 100%;
+    position: relative;
+    box-sizing: border-box; 
+}
+
+@media (min-width: 700px) {
+    .container{
+        padding-left: 20%;
+        padding-right: 20%;
+    }
+}
+
+@media (min-width: 1024px) {
+    .container{
+        padding-left: 30%;
+        padding-right: 30%;
+    }
+}
+
+
+.header{
+    display: flex;
+    align-items: center;
+}
+
+.header img {
+    margin-right: 10px; 
+}
+
+.divider{
+    width: 100%;
+    margin-top: 1em;
+    border-bottom: 1px solid var(--theme-divider);
+}
+
+a:link { 
+    text-decoration: none; 
+} 
+
+
+/* Side bar */
+#sidebarWrapper{
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display:none;
+}
+
+#blurcover{
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top:0;
+    right:0;
+    background-color: rgba(0,0,0,0.7);
+}
+
+#sidebar{
+    height: 100vh;
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 250px;
+    background-color: var(--theme-dark-alt);
+    padding-top: 1em;
+    box-sizing: border-box; 
+}
+
+#sidebar .item{
+    width: 100%;
+    padding: 0.6em;
+    font-size: 1em;
+    display: flex;
+    align-items: center;
+    color: white;
+}
+
+#sidebar .item.clickable{
+    cursor: pointer;
+}
+
+#sidebar .item img{
+    margin-right: 0.6em; 
+}
+
+#sidebar .item.clickable:hover{
+    background-color: var( --theme-active);
+}
+
+/* Top Menu */
+#menu{
+    background-color: var(--theme-base);
+    color: white;
+}
+
+#menu .logo{
+    font-size: 1.5em;
+    font-family: 'mulishB';
+}
+
+#menu .togglemenu{
+    position: absolute;
+    right: 1.2em;
+    top: 0.4em;
+    height: 38px;
+    width: 38px;
+}
+
+#menu .back.button{
+    height: 38px;
+    width: 38px;
+    margin: 0.6em;
+    margin-left: 1.2em;
+
+    border: 1px solid rgb(122, 122, 122);
+    border-radius: 0.4em;
+}
+
+/* Animation Selection */
+.styled-dropdown {
+    background-color: black;
+    color: white;
+    border: 1px solid white;
+    border-radius: 0.6em;
+    padding: 0.5em;
+    font-size: 1em;
+    outline: none;
+    width: 100%;
+  }
+  .styled-dropdown option {
+    background-color: black;
+    color: white;
+  }
+
+
+/* Emoji buttons */
+.emoji-control .reload.button{
+    padding: 10px;
+    margin: 5px;
+    background-color: rgb(74, 148, 74);
+    color: white;
+    font-size: 16px;
+}
+
+#emojibtns .expressionbtn{
+    padding: 10px;
+    margin: 5px;
+    background-color: rgb(119, 233, 125);
+    color: white;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+}
+
+/* Action Control Buttons */
+.action-controls{
+    display: flex;
+    width: 100%;
+    margin-top: 0.6em;
+}
+
+.action-controls .button {
+    flex: 1;
+    padding: 10px;
+    margin: 5px;
+    text-align: center;
+    background-color: #7e68df;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    text-align: center;
+}
+
+/* Direction Control Buttons */
+.direction-controls {
+    display: flex;
+    width: 100%;
+}
+
+.direction-controls .button {
+    flex: 1;
+    padding: 10px;
+    margin: 5px;
+    text-align: center;
+    background-color: #df6868;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 0.1em;
+}
+
+.direction-controls .button img{
+    height: 40px;
+}
+
+.direction-controls .button.active {
+    background-color: #af5050;
+}
+
+/* SD Browser */
+.addrbar{
+    background-color: white;
+    padding: 0.6em;
+    color: var(--theme-dark);
+}
+
+.sdcontent{
+    height: 400px;
+    padding: 0.6em;
+    background-color: white;
+    color: var(--theme-dark);
+    overflow-y: auto;
+    margin-top: 0.6em;
+}
+
+.sdcontent ul{
+    list-style-type: none;
+    padding-left: 1em;
+}
+
+.sdcontent .fileobject{
+    cursor: pointer;
+}
+
+.segment{
+    background-color: white;
+    color: var(--theme-dark);
+    padding: 1.2em;
+    margin-top: 1em;
+}
+
+.upload-container .button{
+    float: right;
+    margin-top: -3px;
+}
+
+#uploadProgress{
+    margin-top: 0.6em;
+    width: 100%;
+    border: 1px solid var(--theme-dark);
+    height: 15px;
+}
+
+#uploadProgress .bar{
+    width: 0px;
+    background-color: var(--theme-secondary);
+    height: 15px;
+    text-align: right;
+    color: white;
+    font-size: 0.8em;
+}
+
+.fileopr.disabled{
+    opacity: 0.6;
+    pointer-events: none;
+    user-select: none;
+}
+
+#messagebox{
+    display:none;
+    position: fixed;
+    right: 1em;
+    bottom: 1em;
+    background-color: #9dd188;
+    min-width: 100px;
+    padding: 1em;
+    border-radius: 0.6em;
+}
+#messagebox.failed{
+    background-color: #d18888;
+}
+
+#messagebox p{
+    margin: 0;
+}

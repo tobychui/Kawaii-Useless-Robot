@@ -1,0 +1,230 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="utf-8"> 
+    <title>📁 SD Browser</title>
+    <script src="./jquery.min.js"></script>
+    <link rel="stylesheet" href="./main.css"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body{
+            background-color: rgb(238, 238, 238);
+        }
+    </style>
+  </head>
+  <body>
+    <!-- Main contents of the webapp -->
+    <div id="menu">
+        <div id="menu">
+            <button onclick="back()" class="back button">
+                <img class="btnicon" src="img/left.svg">
+            </button>
+        </div>
+    </div>
+    <div class="container">
+        <p class="addrbar">📁 /<span id="currentPath"></span></p>
+        <div class="sdcontent">
+            <ul id="folderContent" style="list-style-type:none;">
+                
+            </ul>  
+        </div>
+        <button onclick="parentDir();" class="inverse button" style="margin-top: 0.4em;">↩ Parent Dir</button>
+        <button onclick="refreshDir();" class="inverse button" style="margin-top: 0.4em;">⟳ Refresh</button>
+        
+        <div class="fileopr disabled segment">
+            <p>Selected file: <span id="selectedFilename"></span></p>
+            <button class="inverse button" onclick="openFile();">Open</button>
+            <button class="inverse button" onclick="deleteFile();">Delete</button>
+        </div>
+        <div class="uploadwrapper segment">
+            <div class="upload-container">
+                <input type="file" id="fileInput" multiple>
+                <button class="inverse button" onclick="uploadFiles()">Upload Files</button>
+            </div>
+            <div id="uploadProgress">
+                <div class="bar"></div>
+            </div>
+        </div>
+        <div class="ui divider"></div>
+        <small style="color: #1f1f1f;">Development SD Browser | imuslab</small>
+    </div>
+    <div id="messagebox">
+        <p>Hello World</p>
+    </div>
+    <script>
+        let currentPath = ""; //Do not need prefix or suffix slash
+        let selectedFile = undefined;
+
+        function formatBytes(bytes,decimals) {
+            if(bytes == 0) return '0 Bytes';
+            var k = 1024,
+                dm = decimals || 2,
+                sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+                i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        function listDir(path=""){
+            $("#currentPath").text(path);
+            currentPath = path;
+            selectedFile = undefined;
+            $("#selectedFilename").text("");
+            $(".fileopr").addClass('disabled');
+            $("#folderContent").html("<small>Loading...</small>");
+            $.ajax({
+                url: "/api/fs/listDir?dir=" + path,
+                method: "GET", 
+                success: function(data){
+                    $("#folderContent").html("");
+                    if (path != ""){
+                        //Not at root
+                        $("#folderContent").append(`<li><a class="fileobject" onclick="parentDir();">↼ Back</a></li>`);
+                    }
+                    data.forEach(sdfile => {
+                        let filename = sdfile.Filename;
+                        let filesize = sdfile.Filesize;
+                        let IsDir = sdfile.IsDir;
+
+                        $("#folderContent").append(`<li><a class="fileobject" isdir="${IsDir}" filename="${filename}" onclick="openthis(this);">${IsDir?"📁":"📄"} ${filename} (${formatBytes(filesize, 2)})</a></li>`);
+                    })
+                },
+                error: function(){
+                    $("#folderContent").html("❌ Path Error");
+                }
+            });
+        }
+        listDir();
+
+        function refreshDir(){
+            listDir(currentPath);
+        }
+
+        function msgbox(message, succ=true){
+            if (succ){
+                $("#messagebox").removeClass("failed");
+            }else{
+                $("#messagebox").addClass("failed");
+            }
+
+            $("#messagebox p").text(message);
+            $("#messagebox").stop().finish().fadeIn("fast").delay(5000).fadeOut("fast");
+        }
+
+        function openFile(){
+            if (selectedFile == undefined){
+                alert("No file selected");
+                return;
+            }
+
+            window.open("/api/fs/download?path=/" + selectedFile.Filepath);
+        }
+
+        function deleteFile(){
+            if (selectedFile == undefined){
+                alert("No file selected");
+                return;
+            }
+
+            $.ajax({
+                url: "/api/fs/delete?path=/" +selectedFile.Filepath,
+                method: "GET",
+                success: function(data){
+                    msgbox("File removed");
+                    refreshDir();
+                },
+                error: function(){
+                    msgbox("File remove failed", false);
+                }
+            });
+        }
+
+        function openthis(target){
+            let filename = $(target).attr("filename");
+            let isDir = $(target).attr("isdir") == "true";
+            if (isDir){
+                //Open directory
+                if (currentPath == ""){
+                    //Do not need prefix slash
+                    listDir(filename);
+                }else{
+                    listDir(currentPath + "/" + filename);
+                }
+                
+            }else{
+                //Selected a file
+                selectedFile = {
+                    Filename: filename,
+                    Filepath: currentPath + "/" + filename
+                }
+                $("#selectedFilename").text(filename);
+                $(".fileopr").removeClass('disabled');
+            }
+        }
+
+        function parentDir(){
+            let pathChunks = currentPath.split("/");
+            pathChunks.pop();
+            pathChunks = pathChunks.join("/");
+            listDir(pathChunks);
+        }
+
+        function back(){
+            window.location.href = "index.html";
+        }
+
+        function updateProgressBar(progress){
+            $("#uploadProgress .bar").css({
+                "width": progress + "%",
+            });
+            $("#uploadProgress .bar").text(progress + "%");
+        }
+        
+        function uploadFiles() {
+            var fileInput = document.getElementById('fileInput');
+            var files = fileInput.files;
+
+            if (files.length === 0) {
+                alert('No files selected.');
+                return;
+            }
+
+            // Create a FormData object to send files as multipart/form-data
+            var formData = new FormData();
+
+            // Append each file to the FormData object
+            for (var i = 0; i < files.length; i++) {
+                formData.append('files[]', files[i]);
+            }
+
+            // Send the FormData object via XMLHttpRequest
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload?dir=' + currentPath, true); // Replace '/upload' with your ESP32 server endpoint
+   
+            // Track upload progress
+            xhr.upload.addEventListener('progress', function(event) {
+                if (event.lengthComputable) {
+                    var percentComplete = (event.loaded / event.total) * 100;
+                    console.log('Upload progress: ' + percentComplete.toFixed(2) + '%');
+                    updateProgressBar(percentComplete.toFixed(2));
+                } else {
+                    console.log('Upload progress: unknown');
+                }
+            });
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    msgbox('File uploaded successfully.');
+                } else {
+                    msgbox('Error writing files to disk.', false);
+                }
+                refreshDir();
+            };
+
+            xhr.onerror = function() {
+                msgbox('Error uploading files.');
+            };
+            xhr.send(formData);
+        }
+                
+    </script>
+</body>

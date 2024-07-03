@@ -1,0 +1,324 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="utf-8"> 
+    <title>👾 Control Panel (`・ω・´)</title>
+    <script src="./jquery.min.js"></script>
+    <link rel="stylesheet" href="./main.css"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+  <body>
+    <!-- Main contents of the webapp -->
+    <div id="menu">
+      <div class="container">
+        <span class="logo">(`・ω・´)</span>
+      </div>
+      <button onclick="toggleSideMenu()" class="togglemenu button">
+        <img class="btnicon" src="img/menu.svg">
+      </button>
+    </div>
+    <div class="container">
+      <div class="header">
+        <img src="img/checkmark.svg" >
+        <span>Useless Robot Connected<br>
+          <small>IP Address: <span id="ipaddr">Unknown</span></small></span>
+      </div>
+      <div class="divider"></div>
+      <h3>Quick Actions</h3>
+      <p>Display Emoji</p>
+      <div class="emoji-control">
+        <div id="emojibtns">
+
+        </div>
+        <button onclick="initEmojis();" class="reload button">Reload</button>
+      </div>
+      
+
+      <!-- Other Actions -->
+      <div class="action-controls">
+        <button id="coverbtn" class="button">
+          <div class="header">
+            <img src="img/open.svg" >
+            <span>Open Cover<br>
+          </div>
+        </button>
+        <button id="pusherbtn" class="button">
+          <div class="header">
+            <img src="img/push.svg" >
+            <span>Push Switch<br>
+          </div>
+        </button>
+      </div>
+
+      <!-- Direction Controls -->
+      <div class="direction-controls">
+        <button id="upbtn" class="button">
+          <img src="img/up.svg">
+        </button>
+        <button id="downbtn" class="button">
+          <img src="img/down.svg">
+        </button>
+        <button id="leftbtn" class="button">
+          <img src="img/left.svg">
+        </button>
+        <button id="rightbtn" class="button">
+          <img src="img/right.svg">
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+      
+    
+    <!-- Side bar for other functions-->
+    <div id="sidebarWrapper">
+      <div id="blurcover"></div>
+      <div id="sidebar">
+        <div class="item">
+          <b>Advance Functions</b>
+        </div>
+        <div class="divider"></div>
+        <a class="clickable item" href="animator.html">
+          <img src="img/animation.svg"> Animation Editor
+        </a>
+        <!-- <a class="clickable item" >
+          <img src="img/action.svg"> Action Programmer
+        </a> -->
+        <a class="clickable item" href="sd.html">
+          <img src="img/folder.svg"> SD Browser
+        </a>
+        <a class="clickable item" onclick="movePusherToInstallPos();">
+          <img src="img/code.svg"> Pusher Install Pos
+        </a>
+        <div class="item">
+          <small>Cute Useless Robot v1.0</small>
+        </div>
+      </div>
+    </div>
+  <script>
+    let coverOpen = false;
+
+    /* Emoji selection buttons */
+    function initEmojis(){
+      $("#emojibtns").html("");
+      let keyChecker = {};
+      $.get("/api/fs/listDir?dir=anime", function(data){
+        //Sort it alphabetically
+        data.sort(function(a, b) {
+          var keyA = (a.Filename),
+            keyB = (b.Filename);
+          // Compare the 2 dates
+          if (keyA < keyB) return -1;
+          if (keyA > keyB) return 1;
+          return 0;
+        });
+        //Render buttons
+        data.forEach(expression => {
+          let emojiCode = expression.Filename;
+          let anicode = emojiCode.split(".");
+          let ext = anicode.pop();
+          if (ext != "bin"){
+            return;
+          }
+          anicode = anicode[0];
+          let anigroup = anicode.substr(0, 1); //e.g. k0 anigroup is k
+          if (typeof(keyChecker[anigroup]) == 'undefined'){
+            //This group not mapped
+            $("#emojibtns").append(`<button onclick="setExpression('${anigroup}');" class="expressionbtn button" group="${anigroup}" filename="${emojiCode}">${anigroup}</button>`);
+            keyChecker[anigroup] = 0;
+          }else{
+            keyChecker[anigroup]++;
+          }
+        })
+
+        //Render frame count
+        for (const [key, value] of Object.entries(keyChecker)) {
+          let frameName = key;
+          if (frameName == "a"){
+            frameName = "default";
+          }else if (frameName == "w"){
+            frameName = "WiFi";
+          }else if (frameName == "x"){
+            frameName = "WiFi Error";
+          }else if (frameName == "z"){
+            frameName = "Clear";
+          }
+
+          let animationTag = "[Static]";
+          if (value > 0){
+            animationTag = `[${value + 1} frames]`
+          }
+          $(`.expressionbtn[group=${key}]`).text(`${frameName} ${animationTag}`);
+        }
+        
+      })
+    }
+    initEmojis();
+    
+    function setExpression(anigroup){
+      $.get(`/api/ctr/emoji?anicode=${anigroup}`, function(data){
+
+      });
+    }
+    /* Action APIS */
+    function movePusher(angle=0){
+      $.get(`/api/ctr/pusher?angle=${angle}`, function(data){
+
+      });
+    }
+
+    function movePusherToInstallPos(){
+      $.get(`/api/ctr/pusher?angle=120`, function(data){
+
+      });
+    }
+
+    function moveCover(open=true){
+      $.get(`/api/ctr/cover?state=${open?"open":"close"}`, function(data){
+
+      });
+    }
+
+    function moveDirection(direction, on=false){
+      $.get(`/api/ctr/move?direction=${direction}&state=${on?"start":"stop"}`, function(data){
+
+      })
+    }
+
+
+    /* Handle Buttons Operations */
+    function openCoverStart(event) {
+      event.preventDefault();
+      console.log('Open Cover Start');
+      
+    }
+
+    function openCoverEnd(event) {
+      event.preventDefault();
+      console.log('Open Cover End');
+      if (!coverOpen){
+        moveCover(true);
+        coverOpen = true;
+      }else{
+        moveCover(false);
+        coverOpen = false;
+      }
+    }
+
+    function pushSwitchStart(event) {
+      event.preventDefault();
+      console.log('Push Switch Start');
+      
+    }
+
+    function pushSwitchEnd(event) {
+      event.preventDefault();
+      console.log('Push Switch End');
+      movePusher(140);
+      setTimeout(function(){
+        movePusher(0);
+      }, 1000);
+    }
+
+    // Direction Controls
+    function upStart(event) {
+      event.preventDefault();
+      console.log('Up Start');
+      moveDirection("up", true);
+    }
+
+    function upEnd(event) {
+      event.preventDefault();
+      console.log('Up End');
+      moveDirection("up", false);
+    }
+
+    function downStart(event) {
+      event.preventDefault();
+      console.log('Down Start');
+      moveDirection("down", true);
+    }
+
+    function downEnd(event) {
+      event.preventDefault();
+      console.log('Down End');
+      moveDirection("down", false);
+    }
+
+    function leftStart(event) {
+      event.preventDefault();
+      console.log('Left Start');
+      moveDirection("left", true);
+    }
+
+    function leftEnd(event) {
+      event.preventDefault();
+      console.log('Left End');
+      moveDirection("left", false);
+    }
+
+    function rightStart(event) {
+      event.preventDefault();
+      console.log('Right Start');
+      moveDirection("right", true);
+    }
+
+    function rightEnd(event) {
+      event.preventDefault();
+      console.log('Right End');
+      moveDirection("right", false);
+    }
+
+    /* Button Press event handlers */
+    // Bind events to Action Controls
+    $('#coverbtn').on('mousedown touchstart', openCoverStart);
+    $('#coverbtn').on('mouseup touchend', openCoverEnd);
+
+    $('#pusherbtn').on('mousedown touchstart', pushSwitchStart);
+    $('#pusherbtn').on('mouseup touchend', pushSwitchEnd);
+
+    // Bind events to Direction Controls
+    $('#upbtn').on('mousedown touchstart', upStart);
+    $('#upbtn').on('mouseup touchend', upEnd);
+
+    $('#downbtn').on('mousedown touchstart', downStart);
+    $('#downbtn').on('mouseup touchend', downEnd);
+
+    $('#leftbtn').on('mousedown touchstart', leftStart);
+    $('#leftbtn').on('mouseup touchend', leftEnd);
+
+    $('#rightbtn').on('mousedown touchstart', rightStart);
+    $('#rightbtn').on('mouseup touchend', rightEnd);
+
+
+    /* Side menu */
+    function toggleSideMenu(){
+      var left = $('#sidebar').offset().left;  // Get the calculated left position
+      if (left >= window.innerWidth || left == 0){
+        //side bar is hidden
+        $("#sidebarWrapper").fadeIn('fast');
+        $("#sidebar").css({left:window.innerWidth + "px"}).animate({"left": (window.innerWidth - $('#sidebar').width())+ "px"}, "fast", function(){
+          
+        });
+      }else{
+        //side bar is shown
+        $("#sidebar").css({left:left}).animate({"left": window.innerWidth + "px"}, "fast", function(){
+          $("#sidebarWrapper").fadeOut('fast');
+        });
+      }
+      
+      
+    }
+    $("#blurcover").on("click", function(){
+      toggleSideMenu();
+    })
+
+    //Get the device IP address
+    $.get("/api/ipaddr", function(data){
+      $("#ipaddr").text(data.ip);
+    })
+
+  </script>
+  </body>
+</html>
