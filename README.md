@@ -14,7 +14,7 @@ Default mode is the mode where the robot interacts and response to switch pushin
 
 ### AP Mode
 
-AP mode is the mode where it will host a web server and you will be able to connect to it using mobile devices with a captive portal browser. 
+AP mode is the mode where it will host a web server and you will be able to connect to it using mobile devices and control the robot movements and facial expression. 
 
 For some devices like iPhone, you might need to disable mobile data and navigate to `http://192.168.4.1` with your browser to open the control panel. For most Android device, a captive portal notification should automatically pops up when you connects to it and ask you to sign in. The control UI will then be shown on the sign in captive portable browser if your network environment is valid.
 
