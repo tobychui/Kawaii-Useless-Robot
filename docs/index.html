@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👾 Useless Robot Animator</title>
+	<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <style>
+        .circle {
+            width: 20px;
+            height: 20px;
+            background-color: #525050;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 2px;
+			cursor: pointer;
+        }
+		
+		.circle.centerleft{
+			border-right: 1px solid white;
+		}
+		
+		.circle.centerright{
+			border-left: 1px solid white;
+		}
+		
+		.circle.active{
+			background-color: #f55142;
+		}
+		
+        #grid-container {
+            display: flex;
+			position: relative;
+			flex-wrap: wrap;
+            width: calc(32 * (20px + 2px * 2));
+        }
+		
+		#dotmatrix{
+			display: flex;
+			flex-wrap: wrap;
+		}
+		
+		html, body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+			background-color: #242424;
+			font-family: Verdana, sans-serif;
+			color: white;
+        }
+		
+		.matrixModule{
+			position: absolute;
+			border: 1px solid #a3a3a3;
+			width: calc(24px * 8);
+			height: calc(24px * 8);
+			pointer-events: none;
+		}	
+		
+		.matrixModule.one {
+			top: 0;
+			left: 0;
+		}
+
+		.matrixModule.two {
+			top: 0;
+			left: 192px;
+		}
+
+		.matrixModule.three {
+			top: 0;
+			left: 384px;
+		}
+
+		.matrixModule.four {
+			top: 0;
+			left: 576px;
+		}
+
+		.matrixModule.five {
+			top: 192px;
+			left: 0px;
+		}
+
+		.matrixModule.six {
+			top: 192px;
+			left: 192px;
+		}
+
+		.matrixModule.seven {
+			top: 192px;
+			left: 384px;
+		}
+
+		.matrixModule.eight {
+			top: 192px;
+			left: 576px;
+		}
+		
+		button{
+			background-color: white;
+			color: #3b3b3b;
+			border-radius: 0em;
+			box-shadow: none;
+			padding-top: 0.4em;
+			padding-bottom: 0.4em;
+			padding-left: 1em;
+			padding-right: 1em;
+			cursor: pointer;
+			margin: 0.2em;
+			margin-top: 0.6em;
+		}
+
+		.rotate-message {
+			font-family: Arial, Helvetica, sans-serif;
+			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: calc(100% - 1em);
+			height: 100%;
+			padding-left: 0.5em;
+			background-color: #242424;
+			color: white;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			font-size: 1.3em;
+			text-align: center;
+			z-index: 9999;
+		}
+    </style>
+</head>
+<body>
+    <div id="grid-container">
+		<div id="layout">
+			<div class="matrixModule one"></div>
+			<div class="matrixModule two"></div>
+			<div class="matrixModule three"></div>
+			<div class="matrixModule four"></div>
+			<div class="matrixModule five"></div>
+			<div class="matrixModule six"></div>
+			<div class="matrixModule seven"></div>
+			<div class="matrixModule eight"></div>
+		</div>
+		<div id="dotmatrix"></div>
+		<br>
+		<div style="width: 100%; padding: 1em; ">
+		<div style="float: right;">
+				<button onclick="clearScreen();">Clear</button>
+				<button onclick="loadDefault();">Load Default</button>
+				<button onclick="downloadBinary();">Export Binary</button>
+				<button onclick="openFilePicker()">Import Binary</button>
+				<!-- <button onclick="saveToSD();">Save to SD</button> -->
+				<!-- <button onclick="exit()">Back</button> -->
+				<input type="file" id="fileInput" style="display: none;" accept=".bin" onchange="handleFile(event)">
+			</div>
+			<div style="padding-top: 0.8em;">
+				👾 Robot Animator
+			</div>
+			
+		</div>
+	</div>
+	<div id="requireLandscapeMode" class="rotate-message">
+		<div>
+			<p style="font-size: 2em;">(´・ω・`)</p>
+			<p>Please rotate your device to landscape mode.</p>
+		</div>
+		
+	</div>
+    <script>
+		let defaultTemplate = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,1,1,0,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,1,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,1,1,1,1,0,0,0,1,0,0,1,0,0,1,0,0,0,0,1,1,1,1,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+		let previousSaveSDName = "";
+
+        function generateCircleGrid(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) {
+                console.error(`No element found with id "${containerId}"`);
+                return;
+            }
+
+            // Clear the container if it already has content
+            container.innerHTML = '';
+
+            // Create a grid of circles
+            const rows = 16;
+            const cols = 32;
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+					$(container).append('<div class="circle" onClick="toggleThis(this);"></div>');
+				}
+            }
+        }
+		
+		function getFrameAsIntArray(){
+			let results = [];
+			$(".circle").each(function(){
+				let isActive = $(this).hasClass("active");
+				if (isActive){
+					results.push(1);
+				}else{
+					results.push(0);
+				}
+			});
+			return results;
+		}
+
+		function drawFrameFromIntArray(frameArray){
+			let counter = 0;
+			$(".circle").each(function(){
+				if (frameArray[counter] != undefined){
+					let isActive = frameArray[counter] == 1;
+					if (isActive){
+						$(this).addClass('active');
+					}else{
+						$(this).removeClass('active');
+					}
+				}
+				counter++;
+			});
+		}
+
+		function loadDefault(){
+			drawFrameFromIntArray(defaultTemplate);
+		}
+
+		function downloadBinary(){
+			const bitArray = getFrameAsIntArray();
+			const byteArray = [];
+            for (let i = 0; i < bitArray.length; i += 8) {
+                let byte = 0;
+                for (let j = 0; j < 8; j++) {
+                    if (bitArray[i + j]) {
+                        byte |= 1 << (7 - j);
+                    }
+                }
+                byteArray.push(byte);
+            }
+
+            const blob = new Blob([new Uint8Array(byteArray)], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'frame.bin';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+		}
+		
+		function toggleThis(led){
+			if (!$(led).hasClass('active')){
+				$(led).addClass('active');
+			}else{
+				$(led).removeClass('active');
+			}
+		}
+
+        // Call the function to generate the grid
+        generateCircleGrid('dotmatrix');
+
+		function clearScreen(){
+			$(".circle.active").removeClass("active");
+		}
+
+		function exit(){
+			window.location.href = "index.html";
+		}
+
+		//Import functions
+		function openFilePicker() {
+            document.getElementById('fileInput').click();
+        }
+
+        function handleFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const arrayBuffer = e.target.result;
+                    const byteArray = new Uint8Array(arrayBuffer);
+                    const bitArray = [];
+
+                    for (let byte of byteArray) {
+                        for (let i = 7; i >= 0; i--) {
+                            bitArray.push((byte >> i) & 1);
+                        }
+                    }
+
+                    renderBitArray(bitArray);
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        }
+
+        function renderBitArray(bitArray) {
+			drawFrameFromIntArray(bitArray);
+        }
+
+		/* RWD and mobile interface */
+		let isMobile = false;
+		if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+            isMobile = true;
+		}
+
+		function calculateScale(windowWidth, windowHeight, minWidth=768, minHeight=460) {
+			// Calculate the scale ratios for both width and height
+			const widthRatio = windowWidth / minWidth;
+			const heightRatio = windowHeight / minHeight;
+
+			// Choose the smaller ratio to ensure the entire div fits within the screen
+			return Math.min(widthRatio, heightRatio);
+		}
+
+		function updateRWD(){
+			if (isMobile){
+				if (window.innerHeight > window.innerWidth){
+					$("#grid-container").hide();
+					$("#requireLandscapeMode").show();
+				}else{
+					$("#grid-container").show();
+					$("#requireLandscapeMode").hide();
+				}
+
+				//Scale down the grids to size
+				//768 * 460
+				const scale = calculateScale(window.innerWidth, window.innerHeight - 24);
+				$("#grid-container").css("scale", scale);
+				$("#grid-container").css("margin-top", "24px");
+			}
+		}
+		
+		if (isMobile){
+			updateRWD();
+		}else{
+			$("#requireLandscapeMode").hide();
+		}
+		
+		$(window).on("resize", function(){
+			updateRWD();
+		})
+
+		function saveToSD(){
+			let anicode = prompt("Emoji animation code (1 char + 1 digit only, e.g. \"k0\")", previousSaveSDName);
+			if (anicode != null) {
+				previousSaveSDName = anicode;
+				const bitArray = getFrameAsIntArray();
+				const byteArray = [];
+				for (let i = 0; i < bitArray.length; i += 8) {
+					let byte = 0;
+					for (let j = 0; j < 8; j++) {
+						if (bitArray[i + j]) {
+							byte |= 1 << (7 - j);
+						}
+					}
+					byteArray.push(byte);
+				}
+
+				const blob = new Blob([new Uint8Array(byteArray)], { type: 'application/octet-stream' });
+				const anifile = new File([blob], anicode + ".bin");
+				uploadFiles([anifile])
+			} 
+		}
+
+		//Upload file to server
+		function uploadFiles(files) {
+            if (files.length === 0) {
+                alert('No files selected.');
+                return;
+            }
+
+            // Create a FormData object to send files as multipart/form-data
+            var formData = new FormData();
+
+            // Append each file to the FormData object
+            for (var i = 0; i < files.length; i++) {
+                formData.append('files[]', files[i]);
+            }
+
+            // Send the FormData object via XMLHttpRequest
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload?dir=/anime', true); // Replace '/upload' with your ESP32 server endpoint
+   
+            // Track upload progress
+            xhr.upload.addEventListener('progress', function(event) {
+                if (event.lengthComputable) {
+                    var percentComplete = (event.loaded / event.total) * 100;
+                    console.log('Upload progress: ' + percentComplete.toFixed(2) + '%');
+                } else {
+                    console.log('Upload progress: unknown');
+                }
+            });
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    alert('Animation frame saved');
+					$.get(`/api/ctr/emoji?anicode=${previousSaveSDName}`);
+                } else {
+                    alert('Error writing files to disk.');
+                }
+            };
+
+            xhr.onerror = function() {
+                alert('Error uploading files.');
+            };
+            xhr.send(formData);
+        }
+
+    </script>
+</body>
+</html>
