@@ -59,7 +59,9 @@ Different version of ESP32 arduino core uses different version of RTOS. Thus, so
 
 ## License
 
-MIT License
+**Software**: MIT License
+
+**Hardware**: CC BY-SA
 
 
 
